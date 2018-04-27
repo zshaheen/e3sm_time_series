@@ -3,7 +3,7 @@ input_dir='~/climo_timeseries_data'
 output_dir='~/e3sm_diags_timeseries'
 start_year=2
 end_year=2
-variables='FLNT FSNTOAC'
+variables='FLNT FSNTOAC FLUTC'
 case_id='20180129.DECKv1b_piControl.ne30_oEC.edison'
 #input_files='20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0001-12.nc 20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0002-*nc'
 
