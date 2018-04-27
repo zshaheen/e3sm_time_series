@@ -1,4 +1,5 @@
 import os
+import glob
 import cdutil
 import cdms2
 import numpy
@@ -30,8 +31,58 @@ def what_season(fnm):
         "11": "SON",
         "12": "DJF"
     }
-    month = fnm.split('-')[-1][:2]
+
+    month = fnm[-5:-3]
     return month_to_season[month] if month in month_to_season else None
+
+
+def get_input_files_from_climo(args):
+    """
+    Given the input arguments, return the list of files
+    to be opened to create a climatology.
+    """
+    files = []
+
+    # Use the explicitly defined files from the user
+    if args.input_files:
+        for input_file in args.input_files:
+            input_dir = os.path.expanduser(args.input_dir)
+            pth = os.path.join(input_dir, input_file)
+            for file_found in glob.glob(pth):
+                files.append(file_found)
+
+    else:
+        # Otherwise, use start and end year, along with case, to get the files
+        s_yr, e_yr, case = args.start_yrs, args.end_yrs, args.case
+
+        # Add the last month of the last year
+        fnm = '{}.cam.h0.{:04d}-12.nc'.format(case, s_yr-1)
+        fnm = os.path.join(args.input_dir, fnm)
+        if os.path.exists(fnm):
+            files.append(fnm)
+
+        # Add everything from s_yr to e_yr.
+        # +1 is because e_yr is inclusive.
+        for yr in range(s_yr, e_yr+1):
+            # glob only gets files that exist, so no need to check for that
+            found_files = glob.glob(os.path.join(args.input_dir, '{}.cam.h0.{:04d}*nc'.format(case, yr)))
+            files.extend(found_files)
+
+        # Remove the last file, which is *h0.e_yr-12.nc, since we don't need the 12th month
+        if len(files) >= 1:
+            files.pop()
+
+    print('Using files:')
+    for f in files:
+        print(f)
+    
+    # Check that the required number of files were given
+    expected_files = 12*(e_yr-s_yr+1)
+    if len(files) != expected_files:
+        msg = 'We expected {} files, but only found {} for the years from {} to {}.'
+        raise Exception(msg.format(expected_files, len(files), s_yr, e_yr))
+
+    return files
 
 def run(args):
     #input_dir = '/p/user_pub/work/E3SM/1_0/piControl/1deg_atm_60-30km_ocean/atmos/129x256/model-output/mon/ens1/v1'
@@ -45,25 +96,29 @@ def run(args):
     end_year = args.end_yrs
     # variables = ['FLNT', 'FSNTOAC']
     variables = args.vars
+    monthly_files = get_input_files_from_climo(args)
+    #print(args)
+    #print(input_files)
+    #quit()
 
 
     # os.path.expanduser() is for paths with `~`
-    input_dir = os.path.abspath(os.path.expanduser(input_dir))
-    output_dir = os.path.abspath(os.path.expanduser(output_dir))
+    # input_dir = os.path.abspath(os.path.expanduser(input_dir))
+    # output_dir = os.path.abspath(os.path.expanduser(output_dir))
     output_dir = os.path.join(output_dir, 'cdat_climo_results')
 
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    start_year = '{:04d}'.format(start_year)
-    end_year = '{:04d}'.format(end_year)
+    #start_year = '{:04d}'.format(start_year)
+    #end_year = '{:04d}'.format(end_year)
 
 
     # h0_file = '20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0002-12.nc'
     # for climo:
     # ncrcat of all of these files, actually creates a file with all of the stuff combined.
     # or use cdscan for CDAT stuff
-
+    '''
     monthly_files = [
     '20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0001-12.nc',
     '20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0002-01.nc',
@@ -78,6 +133,7 @@ def run(args):
     '20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0002-10.nc',
     '20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0002-11.nc',
     ]
+    '''
 
     cdutil_seasons = {}
     cdutil_seasons['ANN'] = cdutil.ANNUALCYCLE
@@ -92,7 +148,7 @@ def run(args):
 
     output_vars = {}  # a dict var_name: cdms2.TransientVariable
 
-    first_file_pth = os.path.join(input_dir, monthly_files[0])
+    first_file_pth = monthly_files[0]
     shape = ()
     with cdms2.open(first_file_pth) as f:
         if variables == []:
@@ -125,8 +181,8 @@ def run(args):
     for month_file_nm in monthly_files:
         print('\nUsing {}'.format(month_file_nm))
         season_of_file = what_season(month_file_nm)
-        pth = os.path.join(input_dir, month_file_nm)
-        with cdms2.open(pth) as month_file:
+
+        with cdms2.open(month_file_nm) as month_file:
             # For each variable in the month_file, add the data for this variable
             # to the appropriate output file
             for var in variables:
