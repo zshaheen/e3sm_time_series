@@ -1,6 +1,9 @@
 import os
 import argparse
 import glob
+import shutil
+import traceback
+import diff
 from cdat import cdat_climo
 from ncclimo import ncclimo_climo
 
@@ -26,16 +29,27 @@ args.output_dir = os.path.abspath(os.path.expanduser(args.output_dir))
 #args.end_yrs = '{:04d}'.format(args.end_yrs)
 
 try:
-    print('*'*30)
-    print('Running climos with CDAT')
-    print('*'*30)
-    cdat_climo.run(args)
-
-    #print('*'*30)
-    #print('Running climos with ncclimo')
-    #print('*'*30)
-    #ncclimo_climo.run(args)
-    
-finally:
     if args.cleanup:
-        print('Removing generated climos files.')
+        print('Removing generated files.')
+        pths = ['ncclimo_climo_results', 'cdat_climo_results']
+        for p in pths:
+            d = os.path.join(args.output_dir, p)
+            if os.path.exists(d):
+                print('Deleting: {}'.format(d))
+                shutil.rmtree(d)
+    else:
+        '''
+        print('*'*30)
+        print('Running climos with CDAT')
+        print('*'*30)
+        cdat_climo.run(args)
+
+        print('*'*30)
+        print('Running climos with ncclimo')
+        print('*'*30)
+        ncclimo_climo.run(args)
+        '''
+        diff.run(args.vars, args.output_dir)
+
+except Exception as e:
+    traceback.print_exc()

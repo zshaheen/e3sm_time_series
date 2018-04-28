@@ -3,6 +3,11 @@ import argparse
 import cdutil
 import cdms2
 
+value = 0
+cdms2.setNetcdfShuffleFlag(value) ## where value is either 0 or 1
+cdms2.setNetcdfDeflateFlag(value) ## where value is either 0 or 1
+cdms2.setNetcdfDeflateLevelFlag(value) ## where value is a integer between 0 and 9 included
+
 
 input_dir = '/p/user_pub/work/E3SM/1_0/piControl/1deg_atm_60-30km_ocean/atmos/129x256/model-output/mon/ens1/v1'
 output_dir = '~/e3sm_diags_timeseries'
@@ -47,8 +52,10 @@ if variables == []:
 
 print('Using variables: {}'.format(variables))
 
+# '''
 for month_file_nm in monthly_files:
     pth = os.path.join(input_dir, month_file_nm)
+    print('Examining file: {}'.format(pth))
     month_file = cdms2.open(pth)
     # For each variable in the month_file, add the data for this variable
     # to the appropriate output file
@@ -60,8 +67,27 @@ for month_file_nm in monthly_files:
             fnm = os.path.join(output_dir, fnm)
             output_files.append(cdms2.open(fnm, 'w'))  # O(1)
 
-        data = month_file[var]
+        data = month_file(var)
+        print('Data has shape: {}'.format(data.shape))
+        print('WRITING DATA TO A FILE')
         out_file = output_files[i]
+        #if data.id in out_file.variables:
+        #        data.setAxis(-1,out_file[data.id].getAxis(-1).clone())
+        #        data.setAxis(-2,out_file[data.id].getAxis(-2).clone())
+        out_file.sync()
         out_file.write(data)
-
-
+'''
+var = variables[0]
+fnm = '{}_{}01_{}12.nc'.format(var, start_year, end_year)
+fnm = os.path.join(output_dir, fnm)
+out_file = cdms2.open(fnm, 'w')
+for month_file_nm in monthly_files[:1]:
+    pth = os.path.join(input_dir, month_file_nm)
+    print('Examining file: {}'.format(pth))
+    month_file = cdms2.open(pth)
+    data = month_file(var)
+    #d = data['FLNT']
+    print(data.shape)
+    print('WRITING TO FILE')
+    out_file.write(data)
+'''

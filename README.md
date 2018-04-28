@@ -28,6 +28,7 @@ Information taken from [here](https://acme-climate.atlassian.net/wiki/spaces/SIM
 `ncclimo --start=start_yr --end=end_yr --case=run_id --input=drc_in --output=drc_out`
 
 `-C` for climatology mode. `mth` for monthly is default, you can use `ann` for annual.
+* For this example, we don't set this value. So it defaults to `-C mth`, because the input data is split into monthly data
 
 `-c` case id, or the simulation name. Given `20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0001-01.nc`, we do `-c 20180129.DECKv1b_piControl.ne30_oEC.edison`.
   * `cam` and `h0` are controlled by `-m` and `-h` respectively.

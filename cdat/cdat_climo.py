@@ -141,7 +141,7 @@ def run(args):
 
     # Write all of the files
     for s in seasons:
-        fnm = '{}_{}_{:04d}01_{:04d}12_climo.nc'.format(case, s, start_year, end_year)
+        fnm = '{}_{}_climo.nc'.format(case, s)
         fnm = os.path.join(output_dir, fnm)
         print('Writing climo file: {}'.format(fnm))
         with cdms2.open(fnm, 'w') as f:
