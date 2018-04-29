@@ -1,4 +1,5 @@
 import os
+import glob
 import cdms2
 import numpy as np
 import numpy.ma as ma
@@ -19,6 +20,7 @@ panel = [(0.1691, 0.6810, 0.6465, 0.2258),
 
 def add_cyclic(var):
     lon = var.getLongitude()
+    print('type(lon): {}'.format(type(lon)))
     return var(longitude=(lon[0], lon[0] + 360.0, 'coe'))
 
 
@@ -31,7 +33,7 @@ def get_ax_size(fig, ax):
 
 
 def plot_panel(n, fig, proj, var, title):
-    var = add_cyclic(var)
+    #var = add_cyclic(var)
     lon = var.getLongitude()
     lat = var.getLatitude()
     var = ma.squeeze(var.asma())
@@ -93,16 +95,18 @@ def plot(test, reference, diff, parameter, fnm):
     plt.savefig(fnm + '.png')
 
 
-def run(variables, output_dir):
-    #cdat_p = '/export/shaheen2/e3sm_diags_timeseries/cdat_climo_results/20180129.DECKv1b_piControl.ne30_oEC.edison_SON_climo.nc' 
-    cdat_p = '/export/shaheen2/e3sm_diags_timeseries/ncclimo_climo_results/20180129.DECKv1b_piControl.ne30_oEC.edison_SON_climo.nc' 
-    nco_p = '/export/shaheen2/e3sm_diags_timeseries/ncclimo_climo_results/20180129.DECKv1b_piControl.ne30_oEC.edison_SON_climo.nc'
+def run(args):
+    variables = args.vars
+    output_dir = args.output_dir
 
-    cdat_f = cdms2.open(cdat_p)
-    nco_f = cdms2.open(nco_p)
-    print(cdat_f.variables)
-    print(nco_f.variables)
+    ###cdat_p = '/export/shaheen2/e3sm_diags_timeseries/cdat_climo_results/20180129.DECKv1b_piControl.ne30_oEC.edison_SON_climo.nc' 
+    #cdat_p = '/export/shaheen2/e3sm_diags_timeseries/ncclimo_climo_results/20180129.DECKv1b_piControl.ne30_oEC.edison_SON_climo.nc' 
+    ###nco_p = '/export/shaheen2/e3sm_diags_timeseries/ncclimo_climo_results/20180129.DECKv1b_piControl.ne30_oEC.edison_SON_climo.nc'
 
+    cdat_paths = glob.glob(os.path.join(output_dir, 'cdat_climo_results', '*'))
+    # nco_paths = glob.glob(os.path.join(output_dir, 'ncclimo_climo_results', '*'))
+    nco_path_dir = os.path.join(output_dir, 'ncclimo_climo_results')
+    
     output_dir = os.path.join(output_dir, 'diff_results')
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -113,13 +117,34 @@ def run(variables, output_dir):
     p = Namespace()
     p.test_title = 'CDAT'
     p.reference_title = 'ncclimo'
-    p.diff_title = 'diff'
+    p.diff_title = 'CDAT - ncclimo'
 
-    for v in variables:
-        cdat_data = cdat_f(v)
-        nco_data = nco_f(v)
-        diff = cdat_data - nco_data
-        p.main_title = '{}'.format(v)
-        fnm = os.path.join(output_dir, 'diff_{}'.format(v))
+    for cdat_p in cdat_paths:
+        f = cdat_p.split('/')[-1]
+        nco_p = os.path.join(nco_path_dir, f)
+        if not os.path.exists(nco_p):
+            print('File not found, skipping plot for: {}'.format(nco_p))
+            continue
 
-        plot(cdat_data, nco_data, diff, p, fnm)
+        case_id = cdat_p.split('/')[-1]
+        season = case_id.split('_')[-2]
+        case_id = case_id.split('_')[0:-3]
+        case_id = '.'.join(case_id)
+
+        cdat_f = cdms2.open(cdat_p)
+        nco_f = cdms2.open(nco_p)
+        print(cdat_f.variables)
+        print(nco_f.variables)
+
+        for v in variables:
+            print('\ncdat file: {}'.format(cdat_p))
+            print('nco file: {}'.format(nco_p))
+            print('variable: {}'.format(v))
+            cdat_data = cdat_f(v)
+            nco_data = nco_f(v)
+            diff = cdat_data - nco_data
+            p.main_title = '{} {} {}'.format(case_id, season, v)
+            fnm = os.path.join(output_dir, 'diff_{}_{}_{}'.format(case_id, season, v))
+
+            plot(cdat_data, nco_data, diff, p, fnm)
+

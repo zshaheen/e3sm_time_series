@@ -91,13 +91,11 @@ def run(args):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    start_year = args.start_yrs
-    end_year = args.end_yrs
-
     variables = args.vars
     case = args.case  # '20180129.DECKv1b_piControl.ne30_oEC.edison'
 
-    seasons = ['ANN', 'DJF', 'MAM', 'JJA', 'SON']
+    # seasons = ['ANN', 'DJF', 'MAM', 'JJA', 'SON']
+    seasons = ['DJF', 'MAM', 'JJA', 'SON']
 
     cdutil_seasons = {
         'ANN': cdutil.ANNUALCYCLE,
@@ -115,11 +113,15 @@ def run(args):
         shape = f(variables[-1]).shape
 
 
-    output_vars = {}  # a dict var_name: cdms2.TransientVariable
+    # output_vars = {}  # a dict var_name: cdms2.TransientVariable
     # Initalize the output variables, one for each season
+    '''
     for s in seasons:
         output_vars[s] = MV2.array(numpy.zeros(shape))
-
+        # print('first output_vars[s].id')
+        # output_vars[s].id = 'FLNT'
+        # print(output_vars[s].id)
+    '''
 
     print('\nUsing variables: {}'.format(variables))
     for month_file_nm in monthly_files:
@@ -130,15 +132,47 @@ def run(args):
             # For each variable in the month_file, add the data for this variable
             # to the appropriate output file
             for var in variables:
+                output_vars = {}  # a dict var_name: cdms2.TransientVariable
                 var_data = month_file(var)
                 for season in seasons:
                     # Don't want to get climo for monthly files that don't have the data
                     if season == season_of_file:
                         print('Creating climo for {} {}'.format(var, season))
                         climo = cdutil_seasons[season].climatology(var_data)
-                        output_vars[s] += climo
+                        #print('climo.id')
+                        #print(climo.id)
+                        if season not in output_vars:
+                            output_vars[season] = climo
+                            #print('output_vars[season].id 1')
+                            #print(output_vars[season].id)
+                        else:
+                            output_vars[season] += climo
+                            output_vars[season] /= 2
+                            #print('output_vars[season].id 2')
+                            #print(output_vars[season].id)
+                        #output_vars[season].id = 'FLNT'
+                        output_vars[season].id = var
+                        #print('output_vars[season].id')
+                        #print(output_vars[season].id)
 
+                        fnm = '{}_{}_climo.nc'.format(case, season)
+                        fnm = os.path.join(output_dir, fnm)
+                        print('Writing climo file with {}: {}'.format(var, fnm))
+                        with cdms2.open(fnm, 'a') as f:
+                            f.write(output_vars[season])
 
+                '''
+                for s in seasons:
+                    fnm = '{}_{}_climo.nc'.format(case, s)
+                    fnm = os.path.join(output_dir, fnm)
+                    print('Writing climo file with {}: {}'.format(var, fnm))
+                    with cdms2.open(fnm, 'w') as f:
+                        f.write(output_vars[s])
+                    
+                    # Remove the climo for this variable, so that it can be added again
+                    #del(output_vars[s])
+                '''
+    '''
     # Write all of the files
     for s in seasons:
         fnm = '{}_{}_climo.nc'.format(case, s)
@@ -146,8 +180,5 @@ def run(args):
         print('Writing climo file: {}'.format(fnm))
         with cdms2.open(fnm, 'w') as f:
             f.write(output_vars[s])
-
+    '''
     print('Done creating climo!')
-
-    # Questions:
-    # How to add variables of different shape to the climo?

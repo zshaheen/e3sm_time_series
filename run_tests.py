@@ -31,14 +31,13 @@ args.output_dir = os.path.abspath(os.path.expanduser(args.output_dir))
 try:
     if args.cleanup:
         print('Removing generated files.')
-        pths = ['ncclimo_climo_results', 'cdat_climo_results']
+        pths = ['ncclimo_climo_results', 'cdat_climo_results', 'diff_results']
         for p in pths:
             d = os.path.join(args.output_dir, p)
             if os.path.exists(d):
                 print('Deleting: {}'.format(d))
                 shutil.rmtree(d)
     else:
-        '''
         print('*'*30)
         print('Running climos with CDAT')
         print('*'*30)
@@ -48,8 +47,8 @@ try:
         print('Running climos with ncclimo')
         print('*'*30)
         ncclimo_climo.run(args)
-        '''
-        diff.run(args.vars, args.output_dir)
+
+        diff.run(args)
 
 except Exception as e:
     traceback.print_exc()

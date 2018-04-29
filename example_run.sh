@@ -2,9 +2,10 @@ input_dir='/p/user_pub/work/E3SM/1_0/piControl/1deg_atm_60-30km_ocean/atmos/129x
 #input_dir='~/climo_timeseries_data'
 output_dir='~/e3sm_diags_timeseries'
 start_year=2
-end_year=2
-#variables='FLNT FSNTOAC FLUTC'
-variables='FLNT'
+end_year=4
+variables='FLNT FSNTOAC FLUTC'
+#variables='AQSNOW CLDHGH_CAL_UN num_c4SFWET soa_a2SFWET'
+#variables='FLNT'
 case_id='20180129.DECKv1b_piControl.ne30_oEC.edison'
 #input_files='20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0001-12.nc 20180129.DECKv1b_piControl.ne30_oEC.edison.cam.h0.0002-*nc'
 

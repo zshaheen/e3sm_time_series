@@ -24,7 +24,7 @@ def run(args):
     start_year = args.start_yrs
     end_year = args.end_yrs
 
-    variables = ' '.join(v for v in args.vars)
+    variables = ','.join(v for v in args.vars)
     case = args.case  # '20180129.DECKv1b_piControl.ne30_oEC.edison'
 
     cmd = 'ncclimo --vars={} --start={} --end={} --case={} --input={} --output={}'
