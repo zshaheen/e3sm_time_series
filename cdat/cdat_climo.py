@@ -11,7 +11,7 @@ cdms2.setNetcdfDeflateFlag(value) ## where value is either 0 or 1
 cdms2.setNetcdfDeflateLevelFlag(value) ## where value is a integer between 0 and 9 included
 
 
-def what_season(fnm):
+def what_seasons(fnm):
     """
     Given a file in the format:
         case_id.cam.h0.<year>.<month>.nc
@@ -33,7 +33,8 @@ def what_season(fnm):
     }
 
     month = fnm[-5:-3]
-    return month_to_season[month] if month in month_to_season else None
+    # Given *cam.h0.0001.01.nc, return ['01', 'DJF']
+    return [month, month_to_season[month]] if month in month_to_season else []
 
 def get_input_files(args, climo=True):
     """
@@ -97,14 +98,26 @@ def run(args):
     case = args.case  # '20180129.DECKv1b_piControl.ne30_oEC.edison'
 
     # seasons = ['ANN', 'DJF', 'MAM', 'JJA', 'SON']
-    seasons = ['DJF', 'MAM', 'JJA', 'SON']
+    # seasons = ['DJF', 'MAM', 'JJA', 'SON']
 
     cdutil_seasons = {
         'ANN': cdutil.ANNUALCYCLE,
         'DJF': cdutil.DJF,
         'MAM': cdutil.MAM,
         'JJA': cdutil.JJA,
-        'SON': cdutil.SON        
+        'SON': cdutil.SON,
+        '01': cdutil.JAN,
+        '02': cdutil.FEB,
+        '03': cdutil.MAR,
+        '04': cdutil.APR,
+        '05': cdutil.MAY,
+        '06': cdutil.JUN,
+        '07': cdutil.JUL,
+        '08': cdutil.AUG,
+        '09': cdutil.SEP,
+        '10': cdutil.OCT,
+        '11': cdutil.NOV,
+        '12': cdutil.DEC
     }
 
     first_file_pth = monthly_files[0]
@@ -127,7 +140,7 @@ def run(args):
     print('\nUsing variables: {}'.format(variables))
     for month_file_nm in monthly_files:
         print('\nUsing {}'.format(month_file_nm))
-        season_of_file = what_season(month_file_nm)
+        seasons_of_file = what_seasons(month_file_nm)
 
         with cdms2.open(month_file_nm) as month_file:
             # For each variable in the month_file, add the data for this variable
@@ -135,32 +148,30 @@ def run(args):
             for var in variables:
                 output_vars = {}  # a dict var_name: cdms2.TransientVariable
                 var_data = month_file(var)
-                for season in seasons:
-                    # Don't want to get climo for monthly files that don't have the data
-                    if season == season_of_file:
-                        print('Creating climo for {} {}'.format(var, season))
-                        climo = cdutil_seasons[season].climatology(var_data)
-                        #print('climo.id')
-                        #print(climo.id)
-                        if season not in output_vars:
-                            output_vars[season] = climo
-                            #print('output_vars[season].id 1')
-                            #print(output_vars[season].id)
-                        else:
-                            output_vars[season] += climo
-                            output_vars[season] /= 2
-                            #print('output_vars[season].id 2')
-                            #print(output_vars[season].id)
-                        #output_vars[season].id = 'FLNT'
-                        output_vars[season].id = var
-                        #print('output_vars[season].id')
+                for season in seasons_of_file:
+                    print('Creating climo for {} {}'.format(var, season))
+                    climo = cdutil_seasons[season].climatology(var_data)
+                    #print('climo.id')
+                    #print(climo.id)
+                    if season not in output_vars:
+                        output_vars[season] = climo
+                        #print('output_vars[season].id 1')
                         #print(output_vars[season].id)
+                    else:
+                        output_vars[season] += climo
+                        output_vars[season] /= 2
+                        #print('output_vars[season].id 2')
+                        #print(output_vars[season].id)
+                    #output_vars[season].id = 'FLNT'
+                    output_vars[season].id = var
+                    #print('output_vars[season].id')
+                    #print(output_vars[season].id)
 
-                        fnm = '{}_{}_climo.nc'.format(case, season)
-                        fnm = os.path.join(output_dir, fnm)
-                        print('Writing climo file {} with {}'.format(fnm, var))
-                        with cdms2.open(fnm, 'a') as f:
-                            f.write(output_vars[season])
+                    fnm = '{}_{}_climo.nc'.format(case, season)
+                    fnm = os.path.join(output_dir, fnm)
+                    print('Writing climo file {} with {}'.format(fnm, var))
+                    with cdms2.open(fnm, 'a') as f:
+                        f.write(output_vars[season])
 
                 '''
                 for s in seasons:

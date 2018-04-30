@@ -43,10 +43,10 @@ try:
         print('*'*30)
         cdat_climo.run(args)
 
-        #print('*'*30)
-        #print('Running climos with ncclimo')
-        #print('*'*30)
-        #ncclimo_climo.run(args)
+        print('*'*30)
+        print('Running climos with ncclimo')
+        print('*'*30)
+        ncclimo_climo.run(args)
 
         #print('*'*30)
         #print('Creating timeseries with CDAT')
@@ -58,7 +58,7 @@ try:
         #print('*'*30)
         #ncclimo_timeseries.run(args)
 
-        #diff.run(args)
+        diff.run(args)
 
 except Exception as e:
     traceback.print_exc()

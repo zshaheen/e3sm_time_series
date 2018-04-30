@@ -88,7 +88,7 @@ def plot(test, reference, diff, parameter, fnm):
     plot_panel(2, fig, proj, diff, parameter.diff_title)
 
     # Figure title
-    fig.suptitle(parameter.main_title, x=0.5, y=0.96, fontsize=18)
+    fig.suptitle(parameter.main_title, x=0.5, y=0.96, fontsize=14)
 
     # Save figure
     print('Saving diff plot: {}'.format(fnm + '.png'))
@@ -98,6 +98,8 @@ def plot(test, reference, diff, parameter, fnm):
 def run(args):
     variables = args.vars
     output_dir = args.output_dir
+    start_yr = args.start_yrs
+    end_yr = args.end_yrs
 
     ###cdat_p = '/export/shaheen2/e3sm_diags_timeseries/cdat_climo_results/20180129.DECKv1b_piControl.ne30_oEC.edison_SON_climo.nc' 
     #cdat_p = '/export/shaheen2/e3sm_diags_timeseries/ncclimo_climo_results/20180129.DECKv1b_piControl.ne30_oEC.edison_SON_climo.nc' 
@@ -143,8 +145,8 @@ def run(args):
             cdat_data = cdat_f(v)
             nco_data = nco_f(v)
             diff = cdat_data - nco_data
-            p.main_title = '{} {} {}'.format(case_id, season, v)
-            fnm = os.path.join(output_dir, 'diff_{}_{}_{}'.format(case_id, season, v))
+            p.main_title = '{} {} {}, {} to {}'.format(case_id, season, v, start_yr, end_yr)
+            fnm = os.path.join(output_dir, 'diff_{}_{}_{}_{}_{}'.format(case_id, season, v, start_yr, end_yr))
 
             plot(cdat_data, nco_data, diff, p, fnm)
 
