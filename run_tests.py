@@ -5,7 +5,7 @@ import shutil
 import traceback
 import diff
 from cdat import cdat_climo
-from ncclimo import ncclimo_climo
+from ncclimo import ncclimo_climo, ncclimo_timeseries
 
 
 parser = argparse.ArgumentParser(description='Climo and time series parser')
@@ -31,7 +31,7 @@ args.output_dir = os.path.abspath(os.path.expanduser(args.output_dir))
 try:
     if args.cleanup:
         print('Removing generated files.')
-        pths = ['ncclimo_climo_results', 'cdat_climo_results', 'diff_results']
+        pths = ['ncclimo_climo_results', 'cdat_climo_results', 'ncclimo_timeseries_results', 'diff_results']
         for p in pths:
             d = os.path.join(args.output_dir, p)
             if os.path.exists(d):
@@ -47,6 +47,11 @@ try:
         print('Running climos with ncclimo')
         print('*'*30)
         ncclimo_climo.run(args)
+
+        print('*'*30)
+        print('Creating timeseries with ncclimo')
+        print('*'*30)
+        ncclimo_timeseries.run(args)
 
         diff.run(args)
 
