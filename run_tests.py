@@ -4,7 +4,7 @@ import glob
 import shutil
 import traceback
 import diff
-from cdat import cdat_climo
+from cdat import cdat_climo, cdat_timeseries
 from ncclimo import ncclimo_climo, ncclimo_timeseries
 
 
@@ -31,7 +31,7 @@ args.output_dir = os.path.abspath(os.path.expanduser(args.output_dir))
 try:
     if args.cleanup:
         print('Removing generated files.')
-        pths = ['ncclimo_climo_results', 'cdat_climo_results', 'ncclimo_timeseries_results', 'diff_results']
+        pths = ['ncclimo_climo_results', 'cdat_climo_results', 'ncclimo_timeseries_results', 'cdat_timeseries_results',  'diff_results']
         for p in pths:
             d = os.path.join(args.output_dir, p)
             if os.path.exists(d):
@@ -43,17 +43,22 @@ try:
         print('*'*30)
         cdat_climo.run(args)
 
-        print('*'*30)
-        print('Running climos with ncclimo')
-        print('*'*30)
-        ncclimo_climo.run(args)
+        #print('*'*30)
+        #print('Running climos with ncclimo')
+        #print('*'*30)
+        #ncclimo_climo.run(args)
 
-        print('*'*30)
-        print('Creating timeseries with ncclimo')
-        print('*'*30)
-        ncclimo_timeseries.run(args)
+        #print('*'*30)
+        #print('Creating timeseries with CDAT')
+        #print('*'*30)
+        #cdat_timeseries.run(args)
 
-        diff.run(args)
+        #print('*'*30)
+        #print('Creating timeseries with ncclimo')
+        #print('*'*30)
+        #ncclimo_timeseries.run(args)
+
+        #diff.run(args)
 
 except Exception as e:
     traceback.print_exc()

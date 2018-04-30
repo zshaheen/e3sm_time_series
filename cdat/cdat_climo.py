@@ -35,8 +35,7 @@ def what_season(fnm):
     month = fnm[-5:-3]
     return month_to_season[month] if month in month_to_season else None
 
-
-def get_input_files_from_climo(args):
+def get_input_files(args, climo=True):
     """
     Given the input arguments, return the list of files
     to be opened to create a climatology.
@@ -55,11 +54,12 @@ def get_input_files_from_climo(args):
         # Otherwise, use start and end year, along with case, to get the files
         s_yr, e_yr, case = args.start_yrs, args.end_yrs, args.case
 
-        # Add the last month of the last year
-        fnm = '{}.cam.h0.{:04d}-12.nc'.format(case, s_yr-1)
-        fnm = os.path.join(args.input_dir, fnm)
-        if os.path.exists(fnm):
-            files.append(fnm)
+        if climo:
+            # Add the last month of the last year
+            fnm = '{}.cam.h0.{:04d}-12.nc'.format(case, s_yr-1)
+            fnm = os.path.join(args.input_dir, fnm)
+            if os.path.exists(fnm):
+                files.append(fnm)
 
         # Add everything from s_yr to e_yr.
         # +1 is because e_yr is inclusive.
@@ -68,11 +68,13 @@ def get_input_files_from_climo(args):
             found_files = glob.glob(os.path.join(args.input_dir, '{}.cam.h0.{:04d}*nc'.format(case, yr)))
             files.extend(found_files)
 
-        # Remove the last file, which is *h0.e_yr-12.nc, since we don't need the 12th month
-        if len(files) >= 1:
-            files.pop()
+        if climo:
+            # Remove the last file, which is *h0.e_yr-12.nc, since we don't need the 12th month
+            if len(files) >= 1:
+                files.pop()
 
     print('Using files:')
+    files.sort()
     for f in files:
         print(f)
     
@@ -85,7 +87,7 @@ def get_input_files_from_climo(args):
     return files
 
 def run(args):
-    monthly_files = get_input_files_from_climo(args)  # uses args.input_dir
+    monthly_files = get_input_files(args, climo=True)  # uses args.input_dir
     output_dir = args.output_dir
     output_dir = os.path.join(output_dir, 'cdat_climo_results')
     if not os.path.exists(output_dir):
@@ -106,7 +108,6 @@ def run(args):
     }
 
     first_file_pth = monthly_files[0]
-    shape = ()
     with cdms2.open(first_file_pth) as f:
         if variables == []:
             variables = list(f.variables.keys())
@@ -157,7 +158,7 @@ def run(args):
 
                         fnm = '{}_{}_climo.nc'.format(case, season)
                         fnm = os.path.join(output_dir, fnm)
-                        print('Writing climo file with {}: {}'.format(var, fnm))
+                        print('Writing climo file {} with {}'.format(fnm, var))
                         with cdms2.open(fnm, 'a') as f:
                             f.write(output_vars[season])
 

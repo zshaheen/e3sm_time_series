@@ -13,6 +13,8 @@ However, the `id` from `climo` is the variable, so that is okay.
 I guess that adding messes something up? Commenting out the division is still okay.
 Why is this?
 
+How to compare the output of the timeseries?
+Would plotting work?
 
-When using one or more variable, only the final variable is saved to the resultant nc file.
+When opening/appending to files in cdms, do we need to use 'a' instead of 'w'?
 

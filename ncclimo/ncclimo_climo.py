@@ -15,7 +15,7 @@ def run_cmd(cmd):
     return output, err
 
 def run(args):
-    input_dir = args.input_dir  # uses args.input_dir
+    input_dir = args.input_dir
     output_dir = args.output_dir
     output_dir = os.path.join(output_dir, 'ncclimo_climo_results')
     if not os.path.exists(output_dir):
