@@ -27,6 +27,6 @@ def run(args):
     variables = ','.join(v for v in args.vars)
     case = args.case  # '20180129.DECKv1b_piControl.ne30_oEC.edison'
 
-    cmd = 'ncclimo --vars={} --start={} --end={} --case={} --input={} --output={}'
+    cmd = 'ncclimo -p serial --vars={} --start={} --end={} --case={} --input={} --output={}'
     cmd = cmd.format(variables, start_year, end_year, case, input_dir, output_dir)
     run_cmd(cmd)

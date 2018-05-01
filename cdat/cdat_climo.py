@@ -155,7 +155,7 @@ def run(args):
                         output_tvars[season][var][0].id = var
                         output_tvars[season][var][1] += 1
 
-    # For all of the files, for all of the variables in them, average them.
+    # For all of the seasons and months, for all of the variables in them, average them.
     for season in output_tvars:
         for var in output_tvars[season]:
             fnm = '{}_{}_climo.nc'.format(case, season)

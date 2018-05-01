@@ -81,7 +81,7 @@ def run(args):
     input_files = get_input_files(args, climo=False)
     input_files = ' '.join(input_files)
 
-    cmd = 'ncclimo --vars={} --start={} --end={} --output={} {}'
+    cmd = 'ncclimo -p serial --vars={} --start={} --end={} --output={} {}'
     cmd = cmd.format(variables, start_year, end_year, output_dir, input_files)
     run_cmd(cmd)
 
