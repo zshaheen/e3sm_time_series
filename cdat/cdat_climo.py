@@ -1,5 +1,8 @@
+from __future__ import division
+
 import os
 import glob
+import collections
 import cdutil
 import cdms2
 import numpy
@@ -69,13 +72,14 @@ def get_input_files(args, climo=True):
             found_files = glob.glob(os.path.join(args.input_dir, '{}.cam.h0.{:04d}*nc'.format(case, yr)))
             files.extend(found_files)
 
+        files.sort()
+    
         if climo:
             # Remove the last file, which is *h0.e_yr-12.nc, since we don't need the 12th month
             if len(files) >= 1:
                 files.pop()
 
     print('Using files:')
-    files.sort()
     for f in files:
         print(f)
     
@@ -95,10 +99,7 @@ def run(args):
         os.mkdir(output_dir)
 
     variables = args.vars
-    case = args.case  # '20180129.DECKv1b_piControl.ne30_oEC.edison'
-
-    # seasons = ['ANN', 'DJF', 'MAM', 'JJA', 'SON']
-    # seasons = ['DJF', 'MAM', 'JJA', 'SON']
+    case = args.case  # ex: '20180129.DECKv1b_piControl.ne30_oEC.edison'
 
     cdutil_seasons = {
         'ANN': cdutil.ANNUALCYCLE,
@@ -124,18 +125,11 @@ def run(args):
     with cdms2.open(first_file_pth) as f:
         if variables == []:
             variables = list(f.variables.keys())
-        shape = f(variables[-1]).shape
+        # shape = f(variables[-1]).shape
 
-
-    # output_vars = {}  # a dict var_name: cdms2.TransientVariable
-    # Initalize the output variables, one for each season
-    '''
-    for s in seasons:
-        output_vars[s] = MV2.array(numpy.zeros(shape))
-        # print('first output_vars[s].id')
-        # output_vars[s].id = 'FLNT'
-        # print(output_vars[s].id)
-    '''
+    # A dict of {season: {var: [TransientVariable, count]}}
+    # After it's filled, the final files are created from this.
+    output_tvars = {}
 
     print('\nUsing variables: {}'.format(variables))
     for month_file_nm in monthly_files:
@@ -146,51 +140,32 @@ def run(args):
             # For each variable in the month_file, add the data for this variable
             # to the appropriate output file
             for var in variables:
-                output_vars = {}  # a dict var_name: cdms2.TransientVariable
                 var_data = month_file(var)
                 for season in seasons_of_file:
-                    print('Creating climo for {} {}'.format(var, season))
+                    print('Extracting variable {} and computing {} climo'.format(var, season))
+                    if season not in output_tvars:
+                        output_tvars[season] = {}
+
                     climo = cdutil_seasons[season].climatology(var_data)
-                    #print('climo.id')
-                    #print(climo.id)
-                    if season not in output_vars:
-                        output_vars[season] = climo
-                        #print('output_vars[season].id 1')
-                        #print(output_vars[season].id)
+
+                    if var not in output_tvars[season]:
+                        output_tvars[season][var] = [climo, 1]
                     else:
-                        output_vars[season] += climo
-                        output_vars[season] /= 2
-                        #print('output_vars[season].id 2')
-                        #print(output_vars[season].id)
-                    #output_vars[season].id = 'FLNT'
-                    output_vars[season].id = var
-                    #print('output_vars[season].id')
-                    #print(output_vars[season].id)
+                        output_tvars[season][var][0] += climo
+                        output_tvars[season][var][0].id = var
+                        output_tvars[season][var][1] += 1
 
-                    fnm = '{}_{}_climo.nc'.format(case, season)
-                    fnm = os.path.join(output_dir, fnm)
-                    print('Writing climo file {} with {}'.format(fnm, var))
-                    with cdms2.open(fnm, 'a') as f:
-                        f.write(output_vars[season])
+    # For all of the files, for all of the variables in them, average them.
+    for season in output_tvars:
+        for var in output_tvars[season]:
+            fnm = '{}_{}_climo.nc'.format(case, season)
+            fnm = os.path.join(output_dir, fnm)
+            print('Writing climo file with {}: {}'.format(var, fnm))
+            with cdms2.open(fnm, 'a') as f:
+                data = output_tvars[season][var][0]
+                count = output_tvars[season][var][1]
+                result = data/count
+                result.id = var  # this messes up without it
+                f.write(result)
 
-                '''
-                for s in seasons:
-                    fnm = '{}_{}_climo.nc'.format(case, s)
-                    fnm = os.path.join(output_dir, fnm)
-                    print('Writing climo file with {}: {}'.format(var, fnm))
-                    with cdms2.open(fnm, 'w') as f:
-                        f.write(output_vars[s])
-                    
-                    # Remove the climo for this variable, so that it can be added again
-                    #del(output_vars[s])
-                '''
-    '''
-    # Write all of the files
-    for s in seasons:
-        fnm = '{}_{}_climo.nc'.format(case, s)
-        fnm = os.path.join(output_dir, fnm)
-        print('Writing climo file: {}'.format(fnm))
-        with cdms2.open(fnm, 'w') as f:
-            f.write(output_vars[s])
-    '''
     print('Done creating climo!')

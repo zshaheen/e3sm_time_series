@@ -35,13 +35,14 @@ def get_input_files(args, climo=True):
             found_files = glob.glob(os.path.join(args.input_dir, '{}.cam.h0.{:04d}*nc'.format(case, yr)))
             files.extend(found_files)
 
+        files.sort()
+
         if climo:
             # Remove the last file, which is *h0.e_yr-12.nc, since we don't need the 12th month
             if len(files) >= 1:
                 files.pop()
 
     print('Using files:')
-    files.sort()
     for f in files:
         print(f)
     

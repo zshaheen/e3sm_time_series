@@ -58,6 +58,9 @@ try:
         #print('*'*30)
         #ncclimo_timeseries.run(args)
 
+        print('*'*30)
+        print('Creating the diffs')
+        print('*'*30)
         diff.run(args)
 
 except Exception as e:
