@@ -141,6 +141,9 @@ def run(args):
                             output_tvars[season][var][2] +=1
 
 
+                # probably do a heck after last file becasue it needs to add season
+
+                clmio = output_tvars[season][var][0]/output_tvars[season][var][2]
 
     # For all of the seasons and months, for all of the variables in them, average them.
     for season in output_tvars:
