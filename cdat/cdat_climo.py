@@ -127,7 +127,7 @@ def run(args):
                         output_tvars[season] = {}
 
                     if var not in output_tvars[season]:
-                        output_tvars[season][var] = [None, var_data, 0, 1]  # climo array, that season data for that year, N month stored for that year
+                        output_tvars[season][var] = [None, var_data, 0, 1]  # climo array, that season data for that year, N season to goto climo (how many DJF), N month stored for that year (that DJF)
                     else:
                         # if same year (i.e next month of same season
                         output_tvars[season][var][1] += var_data
