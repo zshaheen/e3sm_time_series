@@ -1,6 +1,7 @@
 input_dir='/p/user_pub/work/E3SM/1_0/piControl/1deg_atm_60-30km_ocean/atmos/129x256/model-output/mon/ens1/v1'
 #input_dir='~/climo_timeseries_data'
 output_dir='~/e3sm_diags_timeseries'
+#output_dir='/p/cscratch/acme/shaheen2/climo_timeseries/'
 start_year=2
 end_year=3
 variables='FLNT FSNTOAC FLUTC'

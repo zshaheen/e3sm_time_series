@@ -5,7 +5,7 @@ import shutil
 import traceback
 import datetime
 import diff
-from cdat import cdat_climo, cdat_timeseries
+from cdat import cdat_climo, cdat_climo_ncrcat, cdat_timeseries
 from ncclimo import ncclimo_climo, ncclimo_timeseries
 
 
@@ -44,7 +44,8 @@ try:
         print('Running climos with CDAT')
         print('*'*30)
         cdat_climo_begin = datetime.datetime.now()
-        cdat_climo.run(args)
+        cdat_climo_ncrcat.run(args)
+        #cdat_climo.run(args)
         cdat_climo_end = datetime.datetime.now()
 
         print('*'*30)
@@ -53,6 +54,8 @@ try:
         ncclimo_climo_begin = datetime.datetime.now()
         ncclimo_climo.run(args)
         ncclimo_climo_end = datetime.datetime.now()
+
+        """
 
         print('*'*30)
         print('Creating timeseries with CDAT')
@@ -68,13 +71,15 @@ try:
         ncclimo_timeseries.run(args)
         ncclimo_timeseries_end = datetime.datetime.now()
 
-        '''
+        """
+
+        # '''
         if args.diff:
             print('*'*30)
             print('Creating the diffs')
             print('*'*30)
             diff.run(args)
-        '''
+        # '''
 
         print('*'*30)
         print('Difference of the times')
@@ -85,11 +90,15 @@ try:
         print('ncclimo climo time: {}'.format(ncclimo_climo_t))
         print('CDAT time - ncclimo time: {}'.format(cdat_climo_t - ncclimo_climo_t))
 
+        """
+
         cdat_timeseries_t = cdat_timeseries_end - cdat_timeseries_begin
         ncclimo_timeseries_t = ncclimo_timeseries_end - ncclimo_timeseries_begin
         print('CDAT timeseries time: {}'.format(cdat_timeseries_t))
         print('ncclimo timeseries time: {}'.format(ncclimo_timeseries_t))
         print('CDAT time - ncclimo time: {}'.format(cdat_timeseries_t - ncclimo_timeseries_t))
+
+        """
 
 
 except Exception as e:
