@@ -101,26 +101,6 @@ def run(args):
     variables = args.vars
     case = args.case  # ex: '20180129.DECKv1b_piControl.ne30_oEC.edison'
 
-    cdutil_seasons = {
-        'ANN': cdutil.ANNUALCYCLE,
-        'DJF': cdutil.DJF,
-        'MAM': cdutil.MAM,
-        'JJA': cdutil.JJA,
-        'SON': cdutil.SON,
-        '01': cdutil.JAN,
-        '02': cdutil.FEB,
-        '03': cdutil.MAR,
-        '04': cdutil.APR,
-        '05': cdutil.MAY,
-        '06': cdutil.JUN,
-        '07': cdutil.JUL,
-        '08': cdutil.AUG,
-        '09': cdutil.SEP,
-        '10': cdutil.OCT,
-        '11': cdutil.NOV,
-        '12': cdutil.DEC
-    }
-
     first_file_pth = monthly_files[0]
     with cdms2.open(first_file_pth) as f:
         if variables == []:
@@ -146,14 +126,24 @@ def run(args):
                     if season not in output_tvars:
                         output_tvars[season] = {}
 
-                    climo = cdutil_seasons[season].climatology(var_data)
-
                     if var not in output_tvars[season]:
-                        output_tvars[season][var] = [climo, 1]
+                        output_tvars[season][var] = [None, var_data, 0, 1]  # climo array, that season data for that year, N season to goto climo (how many DJF), N month stored for that year (that DJF)
                     else:
-                        output_tvars[season][var][0] += climo
-                        output_tvars[season][var][0].id = var
-                        output_tvars[season][var][1] += 1
+                        # if same year (i.e next month of same season
+                        output_tvars[season][var][1] += var_data
+                        output_tvars[season][var][3] += 1
+                        # otherwise
+                        if output_tvars[season][var][0] is None:
+                            output_tvars[season][var][0] = var_data/output_tvars[season][var][3]
+                            output_tvars[season][var][2] =1
+                        else:
+                            output_tvars[season][var][0] += var_data/output_tvars[season][var][3]
+                            output_tvars[season][var][2] +=1
+
+
+                # probably do a heck after last file becasue it needs to add season
+
+                clmio = output_tvars[season][var][0]/output_tvars[season][var][2]
 
     # For all of the seasons and months, for all of the variables in them, average them.
     for season in output_tvars:
